@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalNexus PC - AI Chat</title>
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/title.css">
+    <!-- Markdown 渲染样式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <button id="new-chat-btn" class="new-chat-btn">
+                    <span class="icon">+</span>
+                    <span class="text">新建对话</span>
+                </button>
+                <button id="toggle-sidebar-btn" class="icon-btn" title="收起/展开侧边栏">
+                    <svg width="20" height="20" viewBox="0 0 20 20">
+                        <path d="M7 5L12 10L7 15" stroke="currentColor" fill="none" stroke-width="2"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="conversation-list" class="conversation-list">
+                <!-- 对话列表将通过 JS 动态生成 -->
+            </div>
+            <div class="sidebar-footer">
+                <button id="settings-btn" class="sidebar-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/>
+                    </svg>
+                    <span>设置</span>
+                </button>
+                <button id="plugins-btn" class="sidebar-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5H2v2c0 1.1.9 2 2 2h4v1.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V19h4c1.1 0 2-.9 2-2v-3.8h1.5c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5H20.5z" fill="currentColor"/>
+                    </svg>
+                    <span>插件</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主聊天区域 -->
+        <main class="chat-main">
+            <!-- 顶部工具栏 -->
+            <header class="chat-header">
+                <div class="header-left">
+                    <input type="text" id="chat-title" class="chat-title-input" value="新对话" placeholder="输入对话标题...">
+                </div>
+                <div class="header-right">
+                    <select id="model-select" class="model-select" title="选择模型">
+                        <option value="">加载中...</option>
+                    </select>
+                    <button id="clear-messages-btn" class="header-btn" title="清空当前对话">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- 消息列表 -->
+            <div id="messages-container" class="messages-container">
+                <div id="messages" class="messages">
+                    <!-- 欢迎消息 -->
+                    <div class="message ai-message">
+                        <div class="message-content">
+                            你好！我是你的 AI 助手，有什么可以帮助你的吗？
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea id="message-input" class="message-input" placeholder="输入消息... (Enter 发送，Shift+Enter 换行)" rows="1"></textarea>
+                    <button id="send-btn" class="send-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-hint">AI 生成的内容可能不准确，请仔细甄别</div>
+            </div>
+        </main>
+
+        <!-- 右侧 AI 提示词侧边栏 -->
+        <aside id="prompts-sidebar" class="prompts-sidebar">
+            <div class="sidebar-header">
+                <h3>AI 提示词</h3>
+                <button id="toggle-prompts-sidebar-btn" class="icon-btn" title="收起/展开">
+                    <svg width="20" height="20" viewBox="0 0 20 20" class="toggle-icon" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 4 L13 10 L7 16" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="prompts-toolbar">
+                <button id="add-prompt-btn" class="btn btn-sm btn-primary">+ 新建</button>
+            </div>
+            <div id="prompts-list" class="prompts-list">
+                <!-- 提示词列表动态生成 -->
+            </div>
+        </aside>
+    </div>
+
+    <!-- 设置模态框 -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>设置</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label>聊天协议</label>
+                        <select id="protocol-select" required>
+                            <option value="openai">OpenAI API（推荐）</option>
+                        </select>
+                    </div>
+
+                    <!-- OpenAI 配置 -->
+                    <div id="openai-config" class="protocol-config">
+                        <h3>OpenAI API 配置</h3>
+                        <div class="form-group">
+                            <label for="openai-api-key">API Key</label>
+                            <input type="password" id="openai-api-key" placeholder="sk-..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="openai-base-url">Base URL</label>
+                            <input type="url" id="openai-base-url" value="https://api.openai.com/v1" placeholder="https://api.openai.com/v1">
+                        </div>
+                        <div class="form-group">
+                            <label for="openai-model">模型</label>
+                            <input type="text" id="openai-model" value="gpt-3.5-turbo" placeholder="gpt-3.5-turbo">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="openai-max-tokens">Max Tokens</label>
+                                <input type="number" id="openai-max-tokens" value="2048" min="1" max="8192">
+                            </div>
+                            <div class="form-group">
+                                <label for="openai-temperature">Temperature</label>
+                                <input type="number" id="openai-temperature" value="0.7" min="0" max="2" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MCP 工具服务器配置 -->
+                    <div id="mcp-config" class="protocol-config" style="display: none;">
+                        <h3>MCP 工具服务器管理</h3>
+                        
+                        <!-- MCP 配置列表 -->
+                        <div class="mcp-config-section">
+                            <div class="section-header">
+                                <h4>已配置的服务</h4>
+                                <button type="button" id="add-mcp-config-btn" class="btn btn-sm btn-primary">
+                                    <svg width="16" height="16" viewBox="0 0 24 24">
+                                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+                                    </svg>
+                                    添加配置
+                                </button>
+                            </div>
+                            <div id="mcp-config-list" class="mcp-config-list">
+                                <!-- MCP 配置列表将通过 JS 动态生成 -->
+                            </div>
+                            <div class="mcp-config-note">
+                                <p>✓ 这里配置的是 MCP 工具服务器，而不是聊天协议</p>
+                                <p>✓ 启用后系统会从服务器拉取工具，并通过 OpenAI Function Calling 自动调用</p>
+                                <p>✓ 单击复选框可快速启用/禁用某个工具服务器</p>
+                            </div>
+                        </div>
+                        
+                        <hr class="config-divider">
+                        
+                        <!-- 单配置模式（向后兼容） -->
+                        <details class="legacy-config-details">
+                            <summary>单配置模式（旧版，不推荐）</summary>
+                            <div class="form-group">
+                                <label for="mcp-server-url">MCP 服务器地址</label>
+                                <input type="url" id="mcp-server-url" value="http://localhost:8080" placeholder="http://localhost:8080">
+                            </div>
+                            <div class="form-group">
+                                <label for="mcp-model">模型名称</label>
+                                <input type="text" id="mcp-model" value="default" placeholder="default">
+                            </div>
+                            <div class="form-group">
+                                <label for="mcp-auth-token">认证 Token（可选）</label>
+                                <input type="password" id="mcp-auth-token" placeholder="Bearer token">
+                            </div>
+                            <div class="config-note">
+                                <p>注意：这是兼容旧设置的保留字段。推荐使用上方的服务器列表来管理 MCP 工具提供者。</p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- TTS 配置 -->
+                    <div id="tts-config" class="tts-config">
+                        <h3>语音合成 (TTS) 配置</h3>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="tts-enabled">
+                                启用文字转语音
+                            </label>
+                        </div>
+                        <div id="tts-options" class="tts-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="tts-voice">语音</label>
+                                <input type="text" id="tts-voice" placeholder="zh-CN-XiaoxiaoNeural">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tts-rate">语速</label>
+                                    <input type="text" id="tts-rate" value="+0%" placeholder="+0%" autocomplete="off" spellcheck="false">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tts-pitch">音调</label>
+                                    <input type="text" id="tts-pitch" value="+0Hz" placeholder="+0Hz" autocomplete="off" spellcheck="false">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="tts-volume">音量</label>
+                                <input type="text" id="tts-volume" value="+0%" placeholder="+0%" autocomplete="off" spellcheck="false">
+                            </div>
+                            <div class="form-note">
+                                <p>语速范围：-50% 到 +50%</p>
+                                <p>音调范围：-50Hz 到 +50Hz</p>
+                                <p>音量范围：-100% 到 +100%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 长期记忆配置 -->
+                    <div id="memory-config" class="memory-config">
+                        <h3>长期记忆</h3>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="memory-enabled">
+                                启用长期记忆
+                            </label>
+                            <p class="form-note">
+                                启用后，AI 将自动回忆历史对话，并将新对话内容整理为长期记忆，实现跨会话的连贯性。
+                            </p>
+                        </div>
+                        
+                        <!-- 长期记忆配置扩展 -->
+                        <div id="memory-config-detail" class="memory-config-detail" style="margin-top: 20px;">
+                            <h3>记忆精炼设置</h3>
+                            <div class="form-group">
+                                <label for="refine-model">精炼模型</label>
+                                <input type="text" id="refine-model" placeholder="例如：gpt-3.5-turbo" autocomplete="off">
+                                <p class="form-note">用于将对话提炼为长期记忆的模型，留空则使用聊天模型</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="refine-api-key">精炼模型 API Key（可选）</label>
+                                <input type="password" id="refine-api-key" placeholder="留空则复用 OpenAI API Key">
+                            </div>
+                            <div class="form-group">
+                                <label for="refine-base-url">精炼模型 Base URL（可选）</label>
+                                <input type="url" id="refine-base-url" placeholder="https://api.openai.com/v1">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="trigger-percent">触发精炼的 token 百分比</label>
+                                    <input type="number" id="trigger-percent" value="50" min="1" max="100" step="1"> %
+                                    <p class="form-note">累计新消息 token 达到模型最大 token 的此百分比时，执行记忆提炼</p>
+                                </div>
+                                <div class="form-group">
+                                    <label for="sliding-percent">滑动窗口清理百分比</label>
+                                    <input type="number" id="sliding-percent" value="85" min="1" max="100" step="1"> %
+                                    <p class="form-note">当对话总 token 超过模型最大 token 的此百分比时，自动清理最早的历史消息</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 工具配置 -->
+                    <div id="tools-config" class="tools-config">
+                        <h3>AI 工具管理</h3>
+                        <p class="config-note">这里会统一显示本地插件工具和 MCP 远程工具。启用后，模型可按需自动调用。</p>
+                        <div id="tools-list" class="tools-list">
+                            <!-- 工具列表将通过 JS 动态生成 -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="save-settings-btn" class="btn btn-primary">保存</button>
+                <button type="button" id="test-connection-btn" class="btn btn-secondary">测试连接</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 插件管理模态框 -->
+    <div id="plugins-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>插件管理</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="plugins-list" class="plugins-list">
+                    <!-- 插件列表将通过 JS 动态生成 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-plugins-btn" class="btn btn-primary">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCP 配置编辑模态框 -->
+    <div id="mcp-config-edit-modal" class="modal">
+        <div class="modal-content modal-content-sm">
+            <div class="modal-header">
+                <h2>编辑 MCP 配置</h2>
+                <button class="modal-close" onclick="document.getElementById('mcp-config-edit-modal').classList.remove('show')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="mcp-config-edit-form">
+                    <input type="hidden" id="edit-config-id">
+                    <div class="form-group">
+                        <label for="edit-config-name">配置名称 *</label>
+                        <input type="text" id="edit-config-name" placeholder="如：本地 MCP、公司 MCP" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-config-server-url">服务器地址 *</label>
+                        <input type="url" id="edit-config-server-url" placeholder="http://localhost:8080" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-config-model">模型名称</label>
+                        <input type="text" id="edit-config-model" placeholder="default" value="default">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-config-auth-token">认证 Token（可选）</label>
+                        <input type="password" id="edit-config-auth-token" placeholder="Bearer token">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('mcp-config-edit-modal').classList.remove('show')">取消</button>
+                <button type="button" id="save-mcp-config-edit-btn" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示词编辑模态框 -->
+    <div id="prompt-edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>新建提示词</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="prompt-edit-form">
+                    <div class="form-group">
+                        <label for="prompt-name">名称</label>
+                        <input type="text" id="prompt-name" placeholder="例如：通用助手、技术专家..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prompt-content">提示词内容</label>
+                        <textarea id="prompt-content" rows="6" placeholder="你是一个专业的AI助手..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('prompt-edit-modal').classList.remove('show')">取消</button>
+                <button type="button" id="save-prompt-btn" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/plugins.js"></script>
+    <script src="../js/tools.js"></script>
+    <script src="../js/settings.js"></script>
+    <script src="../js/conversation.js"></script>
+    <script src="../js/chat.js"></script>
+    <script src="../js/prompts.js"></script>
+    <script src="../js/init.js"></script>
+</body>
+</html>

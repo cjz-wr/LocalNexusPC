@@ -1,0 +1,37 @@
+{
+  "name": "localnexus-pc",
+  "version": "0.0.1",
+  "description": "AI Chat Desktop Application with OpenAI and MCP support",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:backend": "pyinstaller --onefile --name backend_main backend/main.py"
+  },
+  "keywords": ["electron", "ai", "chat", "openai", "mcp"],
+  "author": "CJZ-WR",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.localnexus.pc",
+    "productName": "LocalNexus PC",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "page/**/*",
+      "backend/**/*"
+    ],
+    "extraResources": [
+      "backend/dist/backend_main.exe"
+    ]
+  }
+}

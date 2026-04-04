@@ -1,0 +1,6 @@
+{
+  "port": "8765",
+  "host": "0.0.0.0",
+  "description": "Backend server configuration",
+  "note": "Modify this file to change backend port"
+}

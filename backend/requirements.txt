@@ -1,0 +1,24 @@
+# Backend dependencies
+fastapi>=0.100.0
+uvicorn>=0.20.0
+websockets==12.0
+pydantic>=2.0.0
+httpx>=0.23.0
+openai>=1.0.0
+
+# TTS dependency
+edge-tts>=6.1.0
+
+# Audio playback dependency (for backend audio playback)
+pygame>=2.0.0
+
+# Audio playback dependency (for frontend audio playback)
+mcp>=0.1.0
+
+# Memory storage dependencies
+lancedb>=0.4.0
+sentence-transformers>=2.2.0
+torch>=1.13.0
+tiktoken>=0.4.0
+pyarrow>=12.0.0
+emoji>=2.2.0
